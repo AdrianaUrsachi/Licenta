@@ -12,10 +12,7 @@ import org.opencv.core.Size;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.objdetect.HOGDescriptor;
-import org.opencv.core.MatOfFloat;
 import org.opencv.objdetect.CascadeClassifier;
-import org.opencv.core.Scalar;
 
 public class Processor {
 	
@@ -46,7 +43,7 @@ public class Processor {
 	            faceImage = src.submat(rect);
 	            Size sz = new Size(64, 128);
 	            Imgproc.resize(faceImage, resizeimage, sz);
-	            String window_name = "detected face";
+	            //String window_name = "detected face";
 	  	        //HighGui.imshow( window_name,  resizeimage);
 	  	        //HighGui.waitKey(0);
 	        }
@@ -125,10 +122,6 @@ public class Processor {
 	    Core.convertScaleAbs( gradX, absGradX );
 	    Core.convertScaleAbs( gradY, absGradY );
 	    Core.addWeighted( absGradX, 0.5, absGradY, 0.5, 0, gradientImage);
-	     
-        //String window_name = "gradient image";
-	    //HighGui.imshow( window_name,  gradientImage);
-	    //HighGui.waitKey(0);
 	    
 	    //Calculate gradient magnitude and direction (in degrees)
 	    Mat mag = new Mat();
@@ -145,7 +138,6 @@ public class Processor {
 	    		double[] pixelProp = new double[2];
 	    		pixelProp[0] = mag.get(i,j)[0];
 	    		pixelProp[1] = computeOrientation(angle.get(i, j)[0]);//discretised orientation
-	    		//System.out.println(angle.get(i, j)[0]+"   " + pixelProp[1]);
 	    		result[i][j] = pixelProp;
 	    	}
 	    }
@@ -196,7 +188,7 @@ public class Processor {
 			}
 		}
 
-
+		//compute histograms
 		for (int i = 1; i < 128; i++) {
 
 			for (int j = 1; j < 64; j++) {
@@ -258,8 +250,61 @@ public class Processor {
 		return histograms;
 
 	}
-	
-	private void computeLBP(double[][][] histograms) {
+
+	public Mat LBP(Mat img){
+	    Mat dst = new Mat(img.rows()-2, img.cols()-2, CvType.CV_8U);
+	    
+	    for(int i=1;i<img.rows()-1;i++) {
+	        for(int j=1;j<img.cols()-1;j++) {
+	            double center = img.get(i,j)[0];
+	            String code = "";
+	            if(img.get(i-1,j-1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i-1,j)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i-1,j+1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i,j+1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i+1,j+1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i+1,j)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i,j-1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            
+	            if(img.get(i-1,j-1)[0]>center)
+	            	code+="1";
+	            else
+	            	code+="0";
+	            int decimalValue = Integer.parseInt(code, 2);
+	            
+	            dst.put(i-1,j-1,(double)(decimalValue));
+	        }
+	    }
+	    return dst;
+	}
+	private Mat computeLBP(double[][][] histograms) {
 		//create 9 images
 		
 		double[][] i1 = new double[128][64];
@@ -323,9 +368,33 @@ public class Processor {
 				image9.put(i,j,i9[i][j]);
 				}
 			}
-		System.out.println(image1.get(3,4));
-		
-		
+	    
+	    Mat l1 = LBP(image1);
+	    Mat l2 = LBP(image2);
+	    Mat l3 = LBP(image3);
+	    Mat l4 = LBP(image4);
+	    Mat l5 = LBP(image5);
+	    Mat l6 = LBP(image6);
+	    Mat l7 = LBP(image7);
+	    Mat l8 = LBP(image8);
+	    Mat l9 = LBP(image9);
+	    
+       
+	   Mat finalPoem = new Mat(126,62,CvType.CV_32F);
+		for(int i=0;i<126;i++) {
+			for(int j=0;j<62;j++)
+			{
+				double poem = l1.get(i,j)[0] + l2.get(i,j)[0] + l3.get(i,j)[0] + l4.get(i,j)[0] + l5.get(i,j)[0] + l6.get(i,j)[0]
+						+ l7.get(i,j)[0] + l8.get(i,j)[0] + l9.get(i,j)[0];
+				finalPoem.put(i, j,poem);
+			}
+		}
+		/*Mat f = new Mat();
+		finalPoem.convertTo(finalPoem, CvType.CV_8U);
+		HighGui.imshow( "poem",  finalPoem);
+	    HighGui.waitKey(0);
+		*/
+		return finalPoem;
 	}
 	
 	public String process(String selectedFile) {
@@ -335,7 +404,7 @@ public class Processor {
 	       Mat face = detectFace(selectedFile);
 	       double[][][] pixelProp = gradientComputation(face);
 		   double[][][] histograms = computeHOG(pixelProp);
-		   computeLBP(histograms);
+		   Mat poemDescriptor = computeLBP(histograms);
 	       
 		File folder = new File("../Photos/");
 
