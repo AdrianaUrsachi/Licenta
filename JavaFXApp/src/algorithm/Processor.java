@@ -13,6 +13,10 @@ import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.CascadeClassifier;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
+import java.util.Arrays;
+
 
 public class Processor {
 	
@@ -34,7 +38,7 @@ public class Processor {
 	      // Detecting the face in the snap
 	      MatOfRect faceDetections = new MatOfRect();
 	      classifier.detectMultiScale(src, faceDetections);
-	      System.out.println(String.format("Detected %s faces", faceDetections.toArray().length));
+	      //System.out.println(String.format("Detected %s faces", faceDetections.toArray().length));
 
 	      Mat faceImage = new Mat();
 	      Mat resizeimage = new Mat();
@@ -122,6 +126,10 @@ public class Processor {
 	    Core.convertScaleAbs( gradX, absGradX );
 	    Core.convertScaleAbs( gradY, absGradY );
 	    Core.addWeighted( absGradX, 0.5, absGradY, 0.5, 0, gradientImage);
+	    
+	    //String window_name = "grad";
+	    //HighGui.imshow( window_name,  gradientImage);
+	    //HighGui.waitKey(0);
 	    
 	    //Calculate gradient magnitude and direction (in degrees)
 	    Mat mag = new Mat();
@@ -251,8 +259,8 @@ public class Processor {
 
 	}
 
-	public Mat LBP(Mat img){
-	    Mat dst = new Mat(img.rows()-2, img.cols()-2, CvType.CV_8U);
+	private Mat LBP(Mat img){
+	    Mat dst = new Mat(img.rows()-2, img.cols()-2, CvType.CV_32F);
 	    
 	    for(int i=1;i<img.rows()-1;i++) {
 	        for(int j=1;j<img.cols()-1;j++) {
@@ -304,7 +312,19 @@ public class Processor {
 	    }
 	    return dst;
 	}
-	private Mat computeLBP(double[][][] histograms) {
+	private Mat computeLBPH(Mat image) {
+		Mat hist = new Mat();
+
+	    MatOfFloat ranges = new MatOfFloat(0f, 256f);
+	    MatOfInt histSize = new MatOfInt(25);
+	    
+	    Imgproc.calcHist(Arrays.asList(image), new MatOfInt(0),
+	            new Mat(), hist, histSize, ranges);
+	    
+	    return hist;
+	    
+	}
+	private Mat[] computeLBP(double[][][] histograms) {
 		//create 9 images
 		
 		double[][] i1 = new double[128][64];
@@ -368,33 +388,20 @@ public class Processor {
 				image9.put(i,j,i9[i][j]);
 				}
 			}
+
+	    Mat l1 = computeLBPH(LBP(image1));
+	    Mat l2 = computeLBPH(LBP(image2));
+	    Mat l3 = computeLBPH(LBP(image3));
+	    Mat l4 = computeLBPH(LBP(image4));
+	    Mat l5 = computeLBPH(LBP(image5));
+	    Mat l6 = computeLBPH(LBP(image6));
+	    Mat l7 = computeLBPH(LBP(image7));
+	    Mat l8 = computeLBPH(LBP(image8));
+	    Mat l9 = computeLBPH(LBP(image9));   
 	    
-	    Mat l1 = LBP(image1);
-	    Mat l2 = LBP(image2);
-	    Mat l3 = LBP(image3);
-	    Mat l4 = LBP(image4);
-	    Mat l5 = LBP(image5);
-	    Mat l6 = LBP(image6);
-	    Mat l7 = LBP(image7);
-	    Mat l8 = LBP(image8);
-	    Mat l9 = LBP(image9);
+	    Mat[] result = {l1,l2,l3,l4,l5,l6,l7,l8,l9};
+	    return result;
 	    
-       
-	   Mat finalPoem = new Mat(126,62,CvType.CV_32F);
-		for(int i=0;i<126;i++) {
-			for(int j=0;j<62;j++)
-			{
-				double poem = l1.get(i,j)[0] + l2.get(i,j)[0] + l3.get(i,j)[0] + l4.get(i,j)[0] + l5.get(i,j)[0] + l6.get(i,j)[0]
-						+ l7.get(i,j)[0] + l8.get(i,j)[0] + l9.get(i,j)[0];
-				finalPoem.put(i, j,poem);
-			}
-		}
-		/*Mat f = new Mat();
-		finalPoem.convertTo(finalPoem, CvType.CV_8U);
-		HighGui.imshow( "poem",  finalPoem);
-	    HighGui.waitKey(0);
-		*/
-		return finalPoem;
 	}
 	
 	public String process(String selectedFile) {
@@ -404,8 +411,23 @@ public class Processor {
 	       Mat face = detectFace(selectedFile);
 	       double[][][] pixelProp = gradientComputation(face);
 		   double[][][] histograms = computeHOG(pixelProp);
-		   Mat poemDescriptor = computeLBP(histograms);
-	       
+		   Mat[] poem = computeLBP(histograms);//un vector cu 9 histograme
+		   
+		   
+		   Mat face2 = detectFace("C:\\Users\\Hp\\Desktop\\AplicatieLicenta\\Licenta\\Photos\\1136\\1136.02.jpg");
+		   
+		   double[][][] pixelProp2 = gradientComputation(face2);
+		   double[][][] histograms2 = computeHOG(pixelProp2);
+		   Mat[] poem2 = computeLBP(histograms2);
+		   
+		   //comparatia intre histograme
+		   double result = 0;
+		   for(int i=0;i<poem.length;i++) {
+			   double res = Imgproc.compareHist(poem[i], poem2[i], Imgproc.CV_COMP_CHISQR);
+			   result+=res;
+		   }
+		   System.out.println(result);
+		   
 		File folder = new File("../Photos/");
 
 		/*for (final File collection : folder.listFiles()) {
