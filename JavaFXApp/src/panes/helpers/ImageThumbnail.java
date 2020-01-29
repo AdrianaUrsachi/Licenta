@@ -36,6 +36,6 @@ public class ImageThumbnail extends VBox {
 
 	public void deletePhoto() {
 		this.imageFile.delete();
-		this.parent.loadPhotos(directory);
+		this.parent.loadPhotos(directory, PaneType.Browse);
 	}
 }

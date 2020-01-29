@@ -8,6 +8,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Background;
@@ -18,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import main.App;
+import panes.helpers.PaneType;
 
 @SuppressWarnings("restriction")
 public class ProcessPane extends VBox {
@@ -30,10 +32,13 @@ public class ProcessPane extends VBox {
 	private File selectedImageFile;
 	private App app;
 	private Processor processor;
+	private Button processButton;
+	private ProgressIndicator progressIndicator;
 
 	public ProcessPane(App app) {
 		this.app = app;
 		processor = new Processor();
+		progressIndicator = new ProgressIndicator();
 
 		content = new VBox();
 		content.setPadding(new Insets(50, 50, 50, 50));
@@ -43,7 +48,7 @@ public class ProcessPane extends VBox {
 		imagePane = new HBox();
 		imagePane.setAlignment(Pos.TOP_CENTER);
 		resultPane = new HBox();
-		resultPane.setAlignment(Pos.TOP_CENTER);
+		resultPane.setAlignment(Pos.CENTER);
 		resultPane.setSpacing(10);
 		content.getChildren().addAll(imagePane, resultPane);
 
@@ -57,10 +62,10 @@ public class ProcessPane extends VBox {
 
 		Button selectPhotoButton = new Button("Select Photo");
 		selectPhotoButton.setOnAction((event) -> selectPhoto());
-		Button processButton = new Button("Process photo");
+		processButton = new Button("Process photo");
 		processButton.setOnAction((event) -> process());
 
-		controls.getChildren().addAll(selectPhotoButton, processButton);
+		controls.getChildren().addAll(selectPhotoButton);
 		this.getChildren().addAll(controls, content);
 	}
 
@@ -74,22 +79,28 @@ public class ProcessPane extends VBox {
 
 		selectedImage = new ImageView(new Image(selectedImageFile.toURI().toString()));
 		selectedImage.setFitHeight(450);
-
-		imagePane.getChildren().add(selectedImage);
+		selectedImage.setFitWidth(450);
+		VBox box = new VBox();
+		box.setStyle("-fx-border-color: black");
+		box.getChildren().add(selectedImage);
+		imagePane.getChildren().add(box);
+		resultPane.getChildren().add(processButton);
 	}
 
 	public void process() {
 		resultPane.getChildren().clear();
+		resultPane.getChildren().add(progressIndicator);
 
 		new Thread(() -> {
 			String response = processor.process(selectedImageFile.toString());
 			Platform.runLater(new Thread(() -> {
+				resultPane.getChildren().clear();
 				File directory = new File("../Photos/" + response.trim());
 				Label label = new Label("The result is: " + response.replace("_", " "));
 				Button viewPhotos = new Button("View Photos");
 
 				viewPhotos.setOnAction((event) -> {
-					this.app.getBrowsePane().loadPhotos(directory);
+					this.app.getBrowsePane().loadPhotos(directory, PaneType.Process);
 					this.app.changeToBrowseScene();
 				});
 

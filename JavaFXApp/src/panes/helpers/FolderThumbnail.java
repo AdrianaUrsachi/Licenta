@@ -49,7 +49,7 @@ public class FolderThumbnail extends VBox {
 		Button enterButton = new Button("");
 		enterButton.setGraphic(plusImage);
 		enterButton.setTooltip(new Tooltip("Enter directory"));
-		enterButton.setOnAction((event) -> this.parent.loadPhotos(directory));
+		enterButton.setOnAction((event) -> this.parent.loadPhotos(directory, PaneType.Browse));
 
 		controls.getChildren().addAll(label, deleteButton, enterButton);
 

@@ -8,6 +8,7 @@ import org.apache.commons.io.FileUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
@@ -21,8 +22,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
+import main.App;
 import panes.helpers.FolderThumbnail;
 import panes.helpers.ImageThumbnail;
+import panes.helpers.PaneType;
 
 @SuppressWarnings("restriction")
 public class BrowsePane extends VBox {
@@ -34,8 +37,12 @@ public class BrowsePane extends VBox {
 	private HBox photosControls;
 	private File currentDirectory;
 	private int page = 1, totalItems = 0;
+	private PaneType returnPaneType;
+	private App app;
+	private ProgressBar progressBar;
 
-	public BrowsePane() {
+	public BrowsePane(App app) {
+		this.app = app;
 		content = new VBox();
 		content.setSpacing(25);
 		content.setPrefHeight(570);
@@ -58,12 +65,17 @@ public class BrowsePane extends VBox {
 			page = 1;
 			loadDirectories(searchInput.getText());
 		});
-		directoryControls.getChildren().addAll(addDirectoryButton, searchInput, searchButton);
+		HBox box = new HBox();
+		box.setPadding(new Insets(0, 50, 0, 100));
+		progressBar = new ProgressBar(0);
+		progressBar.setMinSize(200, 27);
+		box.getChildren().add(progressBar);
+		directoryControls.getChildren().addAll(addDirectoryButton, searchInput, searchButton, box);
 
 		photosControls = new HBox();
 		photosControls.setSpacing(5);
 		Button goBackButton = new Button("Go Back");
-		goBackButton.setOnAction((event) -> loadDirectories());
+		goBackButton.setOnAction((event) -> goBack());
 		Button addPhotoButton = new Button("Add new Photo");
 		addPhotoButton.setOnAction((event) -> addPhoto());
 		photosControls.getChildren().addAll(goBackButton, addPhotoButton);
@@ -96,7 +108,8 @@ public class BrowsePane extends VBox {
 		loadDirectories();
 	}
 
-	public void loadPhotos(File directory) {
+	public void loadPhotos(File directory, PaneType type) {
+		returnPaneType = type;
 		footer.setVisible(false);
 		this.currentDirectory = directory;
 		content.getChildren().clear();
@@ -104,6 +117,9 @@ public class BrowsePane extends VBox {
 		photosLine.setSpacing(35);
 
 		for (final File fileEntry : directory.listFiles()) {
+			if (fileEntry.getName().toLowerCase().contains("-mat")) {
+				continue;
+			}
 			if (photosLine.getChildren().size() == 3) {
 				this.content.getChildren().add(photosLine);
 				photosLine = new HBox();
@@ -120,6 +136,15 @@ public class BrowsePane extends VBox {
 
 	public void loadDirectories() {
 		loadDirectories("");
+	}
+
+	public void setProgress(double progress) {
+		if (progress >= 1) {
+			this.progressBar.setVisible(false);
+			this.app.enableProcess();
+		} else {
+			this.progressBar.setProgress(progress);
+		}
 	}
 
 	private void loadDirectories(String searchKey) {
@@ -174,7 +199,7 @@ public class BrowsePane extends VBox {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		loadPhotos(currentDirectory);
+		loadPhotos(currentDirectory, this.returnPaneType);
 	}
 
 	public void addDirectory() {
@@ -185,6 +210,15 @@ public class BrowsePane extends VBox {
 		File newDirectory = new File("../Photos/" + directoryName);
 		if (newDirectory.mkdir()) {
 			loadDirectories();
+		}
+	}
+
+	private void goBack() {
+		if (this.returnPaneType == PaneType.Browse) {
+			this.loadDirectories();
+		} else {
+			this.loadDirectories();
+			this.app.changeToProcessScene();
 		}
 	}
 

@@ -17,6 +17,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/OpenCv-4.1.1"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/opencv"/>
 	<classpathentry kind="lib" path="C:/Users/Hp/Desktop/AplicatieLicenta/Licenta/JavaFXApp/jars/commons-io-2.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Hp/Desktop/AplicatieLicenta/Licenta/JavaFXApp/jars/jai_imageio-1.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

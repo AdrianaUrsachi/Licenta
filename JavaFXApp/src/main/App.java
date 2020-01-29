@@ -1,5 +1,6 @@
 package main;
 
+import images.ImageManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
@@ -9,6 +10,7 @@ import panes.ProcessPane;
 
 @SuppressWarnings("restriction")
 public class App extends Application {
+	public static ImageManager imageManager;
 	private Stage stage;
 	private BrowsePane browsePane;
 	private ProcessPane processPane;
@@ -24,7 +26,7 @@ public class App extends Application {
 		this.stage = stage;
 		this.stage.setTitle("Application");
 
-		browsePane = new BrowsePane();
+		browsePane = new BrowsePane(this);
 		processPane = new ProcessPane(this);
 		menu = new MyMenu(this);
 		layout = new VBox();
@@ -33,6 +35,12 @@ public class App extends Application {
 		Scene scene = new Scene(layout, 820, 700);
 		this.stage.setScene(scene);
 		this.stage.show();
+
+		new Thread(() -> {
+			System.out.println("Started initializing");
+			imageManager = new ImageManager(this);
+			System.out.println("Done!");
+		}).start();
 	}
 
 	public void changeToBrowseScene() {
@@ -55,5 +63,9 @@ public class App extends Application {
 
 	public ProcessPane getProcessPane() {
 		return processPane;
+	}
+
+	public void enableProcess() {
+		this.menu.enableProcess();
 	}
 }
