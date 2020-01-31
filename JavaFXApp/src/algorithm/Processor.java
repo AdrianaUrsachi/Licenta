@@ -21,37 +21,33 @@ import main.App;
 public class Processor {
 	private static Mat detectFace(String image) {
 
-		// Reading the Image from the file and storing it in to a Matrix object
+		// Citirea imaginii
 		Mat src = Imgcodecs.imread(image);
 
-		// Check if image is loaded fine
+		// Verificare daca citirea s-a facut corect
 		if (src.empty()) {
 			System.out.println("Error opening image: " + image);
 			System.exit(-1);
 		}
 
-		// Instantiating the CascadeClassifier
+		// Instantierea clasificatorului CascadeClassifier
 		String xmlFile = "C:\\opencv\\build\\etc\\lbpcascades\\lbpcascade_frontalface.xml";
 		CascadeClassifier classifier = new CascadeClassifier(xmlFile);
 
-		// Detecting the face in the snap
+		// Detectarea fetei in imaginea sursa
 		MatOfRect faceDetections = new MatOfRect();
 		classifier.detectMultiScale(src, faceDetections);
-		// System.out.println(String.format("Detected %s faces",
-		// faceDetections.toArray().length));
 
+		// Extragerea fetei detectate si redimensionarea imaginii
 		Mat faceImage = new Mat();
-		Mat resizeimage = new Mat();
+		Mat resizedImage = new Mat();
 		for (Rect rect : faceDetections.toArray()) {
 			faceImage = src.submat(rect);
 			Size sz = new Size(64, 128);
-			Imgproc.resize(faceImage, resizeimage, sz);
-			// String window_name = "detected face";
-			// HighGui.imshow( window_name, resizeimage);
-			// HighGui.waitKey(0);
+			Imgproc.resize(faceImage, resizedImage, sz);
 		}
 
-		return resizeimage;
+		return resizedImage;
 	}
 
 	private static double computeOrientation(double angle) {
