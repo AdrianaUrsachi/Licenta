@@ -92,7 +92,7 @@ public class ProcessPane extends VBox {
 		resultPane.getChildren().add(progressIndicator);
 
 		new Thread(() -> {
-			String response = processor.process(selectedImageFile.toString());
+			String response = (String) processor.process(selectedImageFile.toString())[0];
 			Platform.runLater(new Thread(() -> {
 				resultPane.getChildren().clear();
 				File directory = new File("../Photos/" + response.trim());

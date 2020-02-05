@@ -374,15 +374,18 @@ public class Processor {
 
 	}
 
-	public String process(String selectedFile) {
+	public static Object[] process(String selectedFile) {
 		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 		Mat[] poem = processPhoto(selectedFile);
+		return process(poem);
+	}
 
+	public static Object[] process(Mat[] poem) {
 		double bestMatchScore = Double.MAX_VALUE;
 		Collection bestCollection = null;
 		for (Collection collection : App.imageManager.getCollections()) {
 			for (CollectionImage image : collection.getImages()) {
-				if (image.isValid()) {
+				if (image.isValid() && image.isUsable()) {
 					Mat[] mats = image.getMats();
 					double result = 0;
 					for (int i = 0; i < poem.length; i++) {
@@ -400,8 +403,15 @@ public class Processor {
 				}
 			}
 		}
-
-		return bestCollection.getName();
+		Object[] result = new Object[2];
+		try {
+			result[0] = bestCollection.getName();
+			result[1] = new Double(bestMatchScore);
+		} catch (Exception e) {
+			result[0] = "";
+			result[1] = new Double(100);
+		}
+		return result;
 	}
 
 	public static Mat[] processPhoto(String selectedFile) {

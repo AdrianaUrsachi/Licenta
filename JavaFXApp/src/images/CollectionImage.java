@@ -13,6 +13,7 @@ public class CollectionImage {
 	private File root;
 	private Mat[] mats;
 	private boolean valid = true;
+	private boolean usable = true;
 
 	public CollectionImage(String name, String collectionName) {
 		this.name = name;
@@ -87,6 +88,14 @@ public class CollectionImage {
 			Imgcodecs.imwrite(path + String.valueOf(i) + ".jpg", mat);
 			i++;
 		}
+	}
+
+	public boolean isUsable() {
+		return usable;
+	}
+
+	public void setUsable(boolean usable) {
+		this.usable = usable;
 	}
 
 	public static Mat[] deserialize(String path) {

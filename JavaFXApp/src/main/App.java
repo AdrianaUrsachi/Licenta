@@ -7,12 +7,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import panes.BrowsePane;
 import panes.ProcessPane;
+import panes.TestPane;
 
 @SuppressWarnings("restriction")
 public class App extends Application {
 	public static ImageManager imageManager;
 	private Stage stage;
 	private BrowsePane browsePane;
+	private TestPane testPane;
 	private ProcessPane processPane;
 	private VBox layout;
 	private MyMenu menu;
@@ -28,6 +30,8 @@ public class App extends Application {
 
 		browsePane = new BrowsePane(this);
 		processPane = new ProcessPane(this);
+		testPane = new TestPane(this);
+		
 		menu = new MyMenu(this);
 		layout = new VBox();
 		changeToBrowseScene();
@@ -53,6 +57,11 @@ public class App extends Application {
 		this.layout.getChildren().addAll(menu, processPane);
 	}
 
+	public void changeToTestScene() {
+		this.layout.getChildren().clear();
+		this.layout.getChildren().addAll(menu, testPane);
+	}
+	
 	public void exit() {
 		this.stage.close();
 	}

@@ -48,7 +48,7 @@ public class ImageManager {
 	public void initialize() {
 		ThreadsManager manager = new ThreadsManager(root.listFiles(), collections, app);
 		ArrayList<Thread> threads = new ArrayList<Thread>();
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 20; i++) {
 			Thread thread = new Thread(new WorkerThread(manager));
 			thread.start();
 			threads.add(thread);

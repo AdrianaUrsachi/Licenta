@@ -11,7 +11,8 @@ public class MyMenu extends MenuBar {
 
 	public MyMenu(App app) {
 		this.app = app;
-		Menu menu = new Menu("Menu");
+		Menu file = new Menu("File");
+		Menu test = new Menu("Test");
 		MenuItem browseMenuItem = new MenuItem("Browse");
 		processMenuItem = new MenuItem("Process");
 		processMenuItem.setDisable(true);
@@ -21,6 +22,7 @@ public class MyMenu extends MenuBar {
 		MenuItem reprocessMenuItem = new MenuItem("Re-process");
 		MenuItem convertMenuItem = new MenuItem("Convert");
 		MenuItem exitMenuItem = new MenuItem("Exit");
+		MenuItem testMenuItem = new MenuItem("Test Page");
 
 		browseMenuItem.setOnAction((event) -> app.changeToBrowseScene());
 		processMenuItem.setOnAction((event) -> app.changeToProcessScene());
@@ -29,10 +31,12 @@ public class MyMenu extends MenuBar {
 		convertMenuItem.setOnAction((event) -> App.imageManager.convertTif());
 		updateMenuItem.setOnAction((event) -> App.imageManager.update());
 		exitMenuItem.setOnAction((event) -> app.exit());
+		testMenuItem.setOnAction((event) -> app.changeToTestScene());
 
+		test.getItems().addAll(testMenuItem);
 		imagesMenu.getItems().addAll(updateMenuItem, resetMenuItem, reprocessMenuItem, convertMenuItem);
-		menu.getItems().addAll(browseMenuItem, processMenuItem, imagesMenu, exitMenuItem);
-		this.getMenus().add(menu);
+		file.getItems().addAll(browseMenuItem, processMenuItem, imagesMenu, exitMenuItem);
+		this.getMenus().addAll(file, test);
 	}
 
 	public void enableProcess() {
