@@ -3,6 +3,7 @@ package main;
 import images.ImageManager;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import panes.BrowsePane;
@@ -26,7 +27,8 @@ public class App extends Application {
 	@Override
 	public void start(Stage stage) {
 		this.stage = stage;
-		this.stage.setTitle("Application");
+		this.stage.setTitle("FaceFinder");
+		this.stage.getIcons().add(new Image(getClass().getResourceAsStream("/resources/icon.png")));
 
 		browsePane = new BrowsePane(this);
 		processPane = new ProcessPane(this);

@@ -5,10 +5,12 @@ import java.util.Random;
 import algorithm.Processor;
 import images.Collection;
 import images.CollectionImage;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -28,6 +30,7 @@ public class TestPane extends VBox {
 	private TextField accuracyField;
 	private HBox certaintyBox;
 	private HBox accuracyBox;
+	private ProgressBar progressBar;
 
 	public TestPane(App app) {
 		this.app = app;
@@ -75,51 +78,81 @@ public class TestPane extends VBox {
 		leaveOut = new TextField();
 		Button testButton = new Button("Test");
 		testButton.setOnAction((event) -> test());
+		HBox progressBox = new HBox();
+		progressBox.setPadding(new Insets(0, 50, 0, 100));
+		progressBar = new ProgressBar(0);
+		progressBar.setMinSize(200, 27);
+		progressBar.setVisible(false);
+		progressBox.getChildren().add(progressBar);
 
-		box.getChildren().addAll(label, leaveOut, testButton);
+		box.getChildren().addAll(label, leaveOut, testButton,progressBox);
 		controls.getChildren().addAll(box);
 		this.getChildren().addAll(controls, content);
 	}
+	
+	public void setProgress(double progress) {
+		if (progress >= 1) {
+			this.progressBar.setVisible(false);
+			this.app.enableProcess();
+		} else {
+			this.progressBar.setVisible(true);
+			this.progressBar.setProgress(progress);
+		}
+	}
 
 	private void test() {
-		int leaveOutValue = Integer.parseInt(leaveOut.getText()), totalCount = 0, successes = 0;
-		double certainetyPercentage = 0;
-		Random random = new Random();
+		Thread thread = new Thread(() -> {
+			int leaveOutValue = Integer.parseInt(leaveOut.getText()), totalCount = 0, successes = 0;
+			double certainetyPercentage = 0;
+			Random random = new Random();
 
-		for (Collection collection : App.imageManager.getCollections()) {
-			long count = collection.getImages().stream().filter(i -> i.isValid()).count();
-			if (count - 2 > leaveOutValue) {
-				for (int i = 0; i < leaveOutValue; i++) {
-					int index = random.nextInt(collection.getImages().size());
-					collection.getImages().get(index).setUsable(false);
-				}
-			}
-		}
-
-		for (Collection collection : App.imageManager.getCollections()) {
-			for (CollectionImage image : collection.getImages()) {
-				if (image.isValid() && image.isUsable()) {
-					image.setUsable(false);
-					totalCount++;
-
-					Object[] result = Processor.process(image.getMats());
-					if (result[0].equals(collection.getName())) {
-						successes++;
+			for (Collection collection : App.imageManager.getCollections()) {
+				long count = collection.getImages().stream().filter(i -> i.isValid()).count();
+				if (count - 2 > leaveOutValue) {
+					for (int i = 0; i < leaveOutValue; i++) {
+						int index = random.nextInt(collection.getImages().size());
+						collection.getImages().get(index).setUsable(false);
 					}
-					certainetyPercentage += (Double) result[1];
 				}
 			}
-		}
-		this.certaintyBox.setVisible(true);
-		this.accuracyBox.setVisible(true);
-		this.certaintyField.setText(String.valueOf(100 - ((int)certainetyPercentage / totalCount / 10) + "%"));
-		this.accuracyField.setText(String.valueOf(100 * successes / totalCount) + "%");
+			double collectionsCount = App.imageManager.getCollections().size(), count = 1;
+			for (Collection collection : App.imageManager.getCollections()) {
+				count++;
+				for (CollectionImage image : collection.getImages()) {
+					if (image.isValid() && image.isUsable()) {
+						image.setUsable(false);
+						totalCount++;
 
-		for (Collection collection : App.imageManager.getCollections()) {
-			for (CollectionImage image : collection.getImages()) {
-				image.setUsable(true);
+						Object[] result = Processor.process(image.getMats());
+						if (result[0].equals(collection.getName())) {
+							successes++;
+						}
+						certainetyPercentage += (Double) result[1];
+					}
+				}
+				double progress = count/collectionsCount;
+				Platform.runLater(new Thread(() -> {
+					this.setProgress(progress);
+				}));
 			}
-		}
+			int certainty = 100 - ((int) certainetyPercentage / totalCount / 10);
+			int accuracy = 100 * successes / totalCount;
+
+			Platform.runLater(new Thread(() -> {
+				this.certaintyBox.setVisible(true);
+				this.accuracyBox.setVisible(true);
+				this.certaintyField.setText(String.valueOf(certainty) + "%");
+				this.accuracyField.setText(String.valueOf(accuracy) + "%");
+
+				for (Collection collection : App.imageManager.getCollections()) {
+					for (CollectionImage image : collection.getImages()) {
+						image.setUsable(true);
+					}
+				}
+			}));
+		});
+		
+		thread.start();
 	}
 
 }

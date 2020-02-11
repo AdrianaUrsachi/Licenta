@@ -31,13 +31,11 @@ public class ProcessPane extends VBox {
 	private ImageView selectedImage;
 	private File selectedImageFile;
 	private App app;
-	private Processor processor;
 	private Button processButton;
 	private ProgressIndicator progressIndicator;
 
 	public ProcessPane(App app) {
 		this.app = app;
-		processor = new Processor();
 		progressIndicator = new ProgressIndicator();
 
 		content = new VBox();
@@ -92,19 +90,26 @@ public class ProcessPane extends VBox {
 		resultPane.getChildren().add(progressIndicator);
 
 		new Thread(() -> {
-			String response = (String) processor.process(selectedImageFile.toString())[0];
+			String response = (String) Processor.process(selectedImageFile.toString())[0];
 			Platform.runLater(new Thread(() -> {
 				resultPane.getChildren().clear();
 				File directory = new File("../Photos/" + response.trim());
-				Label label = new Label("The result is: " + response.replace("_", " "));
-				Button viewPhotos = new Button("View Photos");
 
-				viewPhotos.setOnAction((event) -> {
-					this.app.getBrowsePane().loadPhotos(directory, PaneType.Process);
-					this.app.changeToBrowseScene();
-				});
+				if (!response.equals("")) {
+					Label label = new Label("The result is: " + response.replace("_", " "));
+					Button viewPhotos = new Button("View Photos");
 
-				this.resultPane.getChildren().addAll(label, viewPhotos);
+					viewPhotos.setOnAction((event) -> {
+						this.app.getBrowsePane().loadPhotos(directory, PaneType.Process);
+						this.app.changeToBrowseScene();
+					});
+
+					this.resultPane.getChildren().addAll(label, viewPhotos);
+				} else {
+					Label label = new Label("No result");
+
+					this.resultPane.getChildren().addAll(label);
+				}
 			}));
 		}).start();
 	}

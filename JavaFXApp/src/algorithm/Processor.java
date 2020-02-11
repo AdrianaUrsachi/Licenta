@@ -388,13 +388,13 @@ public class Processor {
 				if (image.isValid() && image.isUsable()) {
 					Mat[] mats = image.getMats();
 					double result = 0;
-					for (int i = 0; i < poem.length; i++) {
-						try {
+					try {
+						for (int i = 0; i < poem.length; i++) {
 							double res = Imgproc.compareHist(poem[i], mats[i], Imgproc.CV_COMP_CHISQR);
 							result += res;
-						} catch (Exception e) {
-							result += 1000;
 						}
+					} catch (Exception e) {
+						result += 1000;
 					}
 					if (result < bestMatchScore) {
 						bestMatchScore = result;
@@ -403,13 +403,18 @@ public class Processor {
 				}
 			}
 		}
+
+		if (bestMatchScore > 1000) {
+			 bestCollection = null;
+		}
+
 		Object[] result = new Object[2];
 		try {
 			result[0] = bestCollection.getName();
 			result[1] = new Double(bestMatchScore);
 		} catch (Exception e) {
 			result[0] = "";
-			result[1] = new Double(100);
+			result[1] = new Double(1000);
 		}
 		return result;
 	}

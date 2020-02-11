@@ -38,8 +38,10 @@ public class BrowsePane extends VBox {
 	private File currentDirectory;
 	private int page = 1, totalItems = 0;
 	private PaneType returnPaneType;
+	private Button clearButton;
 	private App app;
 	private ProgressBar progressBar;
+	private TextField searchInput;
 
 	public BrowsePane(App app) {
 		this.app = app;
@@ -59,18 +61,28 @@ public class BrowsePane extends VBox {
 		directoryControls.setSpacing(5);
 		Button addDirectoryButton = new Button("New Collection");
 		addDirectoryButton.setOnAction((event) -> addDirectory());
-		TextField searchInput = new TextField();
+		searchInput = new TextField();
 		Button searchButton = new Button("Search");
 		searchButton.setOnAction((event) -> {
 			page = 1;
 			loadDirectories(searchInput.getText());
+			clearButton.setVisible(true);
 		});
+		clearButton = new Button("Clear");
+		clearButton.setVisible(false);
+		clearButton.setOnAction((event) -> {
+			page = 1;
+			searchInput.setText("");
+			loadDirectories("");
+			clearButton.setVisible(false);
+		});
+		
 		HBox box = new HBox();
 		box.setPadding(new Insets(0, 50, 0, 100));
 		progressBar = new ProgressBar(0);
 		progressBar.setMinSize(200, 27);
 		box.getChildren().add(progressBar);
-		directoryControls.getChildren().addAll(addDirectoryButton, searchInput, searchButton, box);
+		directoryControls.getChildren().addAll(addDirectoryButton, searchInput, searchButton,clearButton, box);
 
 		photosControls = new HBox();
 		photosControls.setSpacing(5);
@@ -215,9 +227,9 @@ public class BrowsePane extends VBox {
 
 	private void goBack() {
 		if (this.returnPaneType == PaneType.Browse) {
-			this.loadDirectories();
+			this.loadDirectories(searchInput.getText());
 		} else {
-			this.loadDirectories();
+			this.loadDirectories(searchInput.getText());
 			this.app.changeToProcessScene();
 		}
 	}
