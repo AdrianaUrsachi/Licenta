@@ -107,7 +107,7 @@ public class TestPane extends VBox {
 			Random random = new Random();
 
 			for (Collection collection : App.imageManager.getCollections()) {
-				long count = collection.getImages().stream().filter(i -> i.isValid()).count();
+				long count = collection.getImages().stream().filter(i -> i.isValid()).count(); //nr de imagini care sunt valide
 				if (count - 2 > leaveOutValue) {
 					for (int i = 0; i < leaveOutValue; i++) {
 						int index = random.nextInt(collection.getImages().size());
